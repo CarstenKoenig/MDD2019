@@ -18,9 +18,9 @@ namespace BlockChain
             _signature = sender.SignHash(data);
         }
 
-        public Transaction(byte[] transactionData)
+        public Transaction(byte[] blockContent)
         {
-            using (var mem = new MemoryStream(transactionData))
+            using (var mem = new MemoryStream(blockContent))
             using (var reader = new BinaryReader(mem))
             {
                 _sender = reader.ReadString();

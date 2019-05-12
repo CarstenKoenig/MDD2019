@@ -4,101 +4,102 @@ using System.Security.Cryptography;
 
 namespace BlockChain
 {
-  public class Block
-  {
-    public Block(byte[] inhalt, DateTime zeitstempel, byte[] vorhergehenderHash)
+    public class Block
     {
-      BlockInhalt = inhalt;
-      Zeitstempel = zeitstempel;
-      VorhergehenderBlockHash = vorhergehenderHash;
-
-      BlockNonce = -1;
-      BlockHash = null;
-    }
-
-    public Block(byte[] inhalt, byte[] vorhergehenderHash)
-      : this(inhalt, DateTime.Now, vorhergehenderHash)
-    {
-    }
-
-    public byte[] BlockInhalt { get; }
-    public DateTime Zeitstempel { get; }
-    public byte[] BlockHash { get; private set; }
-    public int BlockNonce { get; private set; }
-    public byte[] VorhergehenderBlockHash { get; }
-
-    public override string ToString()
-    {
-      if (BlockHash == null)
-        return $"{{noch nicht 'MINED'}}\ntime: {Zeitstempel.ToShortTimeString()}";
-
-      string BytesToString(byte[] bytes)
-      {
-        var completeHash = BitConverter.ToString(bytes).Replace("-", "");
-        if (completeHash.Length > 8)
-          return completeHash.Substring(completeHash.Length - 8);
-        return completeHash;
-      };
-
-      return $"{{{BytesToString(BlockHash)}}}\nprev: {{{BytesToString(VorhergehenderBlockHash)}}}\nnonce:{BlockNonce}\ttime: {Zeitstempel.ToShortTimeString()}";
-    }
-
-    public void MineHash(int difficulty)
-    {
-      System.Console.Write($"start MINING with difficulty={difficulty}...");
-      for (var nonce = 0; nonce <= Int32.MaxValue; nonce++)
-      {
-        var hash = BerechneHash(nonce);
-        if (ValiderHash(hash, difficulty))
+        public Block(byte[] inhalt, DateTime zeitstempel, byte[] vorhergehenderHash)
         {
-          BlockHash = hash;
-          BlockNonce = nonce;
-          System.Console.WriteLine($"found NONCE {nonce}");
-          return;
+            Content = inhalt;
+            Timestamp = zeitstempel;
+            PreviousHash = vorhergehenderHash;
+
+            Nonce = -1;
+            BlockHashBytes = null;
         }
-      }
 
-      throw new Exception($"Konne Block nich minen - kein Nonce hat einen validen Hash der Schwierigkeit {difficulty} erzeugt");
+        public Block(byte[] inhalt, byte[] vorhergehenderHash)
+          : this(inhalt, DateTime.Now, vorhergehenderHash)
+        {
+        }
+
+        public byte[] Content { get; }
+        public DateTime Timestamp { get; }
+        public byte[] BlockHashBytes { get; private set; }
+        public string BlockHash => Convert.ToBase64String(BlockHashBytes);
+        public int Nonce { get; private set; }
+        public byte[] PreviousHash { get; }
+
+        public override string ToString()
+        {
+            if (BlockHashBytes == null)
+                return $"{{not yet 'MINED'}}\ntime: {Timestamp.ToShortTimeString()}";
+
+            string BytesToString(byte[] bytes)
+            {
+                var completeHash = BitConverter.ToString(bytes).Replace("-", "");
+                if (completeHash.Length > 8)
+                    return completeHash.Substring(completeHash.Length - 8);
+                return completeHash;
+            };
+
+            return $"{{{BytesToString(BlockHashBytes)}}}\nprev: {{{BytesToString(PreviousHash)}}}\nnonce:{Nonce}\ttime: {Timestamp.ToShortTimeString()}";
+        }
+
+        public void MineHash(int difficulty)
+        {
+            System.Console.Write($"start MINING with difficulty={difficulty}...");
+            for (var nonce = 0; nonce <= Int32.MaxValue; nonce++)
+            {
+                var hash = CalculateHash(nonce);
+                if (IsHashValid(hash, difficulty))
+                {
+                    BlockHashBytes = hash;
+                    Nonce = nonce;
+                    System.Console.WriteLine($"found NONCE {nonce}");
+                    return;
+                }
+            }
+
+            throw new Exception("failed to mine block - no valid nounce found");
+        }
+
+        public bool ValidateHash()
+        {
+            if (BlockHashBytes == null)
+                return false;
+
+            return BlockHashBytes.IsSameAs(CalculateHash(Nonce));
+        }
+
+        bool IsHashValid(byte[] hash, int difficulty)
+        {
+            if (difficulty > hash.Length)
+                throw new Exception("difficulty exceeds hash length");
+
+            for (var i = 0; i < difficulty; i++)
+                if (hash[i] != 0) return false;
+
+            return true;
+        }
+
+        byte[] CalculateHash(int nonce)
+        {
+            var bytes = GetBlockBytes(nonce);
+            using (var hashAlgorithm = SHA512.Create())
+                return hashAlgorithm.ComputeHash(bytes);
+        }
+
+        byte[] GetBlockBytes(int nonce)
+        {
+            using (var memoryStream = new System.IO.MemoryStream())
+            using (var binaryStream = new BinaryWriter(memoryStream))
+            {
+                binaryStream.Write(Content);
+                binaryStream.Write(BitConverter.GetBytes(nonce));
+                binaryStream.Write(PreviousHash);
+                binaryStream.Write(Timestamp.ToBinary());
+
+                return memoryStream.ToArray();
+            }
+        }
     }
-
-    public bool ValidiereHash()
-    {
-      if (BlockHash == null)
-        return false;
-
-      return BlockHash.IsSameAs(BerechneHash(BlockNonce));
-    }
-
-    bool ValiderHash(byte[] hash, int difficulty)
-    {
-      if (difficulty > hash.Length)
-        throw new Exception("Schwierigkeit übersteigt die Hash-Block Länge");
-
-      for (var i = 0; i < difficulty; i++)
-        if (hash[i] != 0) return false;
-
-      return true;
-    }
-
-    byte[] BerechneHash(int nonce)
-    {
-      var bytes = BerechneBlockBytes(nonce);
-      using (var hashAlgorithm = SHA512.Create())
-        return hashAlgorithm.ComputeHash(bytes);
-    }
-
-    byte[] BerechneBlockBytes(int nonce)
-    {
-      using (var memoryStream = new System.IO.MemoryStream())
-      using (var binaryStream = new BinaryWriter(memoryStream))
-      {
-        binaryStream.Write(BlockInhalt);
-        binaryStream.Write(BitConverter.GetBytes(nonce));
-        binaryStream.Write(VorhergehenderBlockHash);
-        binaryStream.Write(Zeitstempel.ToBinary());
-
-        return memoryStream.ToArray();
-      }
-    }
-  }
 }
