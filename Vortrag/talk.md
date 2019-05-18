@@ -87,119 +87,6 @@ Karl-Heinz zahlt am `14.05.` `10 €` an Carsten
 
 ![](../Images/ECDSA.png)
 
-##
-
-`sender` *zahlt* `42 €` an `receiver`
-
-![Transaktion](../Images/Transaction.png)
-
-##
-
-![Transaktion unterschreiben...](../Images/Hashing.png)
-
-##
-
-![Transaktion unterschreiben](../Images/Signing.png)
-
-##
-
-![Transaktion verifizieren](../Images/Verify.png)
-
-
-## doppelte Einträge
-
-```
-...
-
-Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
-...
-```
-
-## nicht weitergeben
-
-```
-...
-
-Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
-...
-```
-
-## Konsens?
-
-![](../Images/P2PwithData.png)
-
-# Block-Chain und Konsens
-
-##
-
-![BlockChain](../Images/BlockChain.png)
-
-## Mining
-
-##
-
-![einige Nodes beteiligen sich am "minen"](../Images/Mining1.png)
-
-##
-
-![Transaktionen in öffentliche Liste](../Images/Mining2.png)
-
-##
-
-![Miner wählen Transaktionen](../Images/Mining3.png)
-
-##
-
-![Gewinner verbreitet neuen Block](../Images/Mining4.png)
-
-## Mining?
-
-![Nounce](../Images/BlockChain.png)
-
-##
-
-**Hash** beginnt mit `x` Nullen (*Schwierigkeit*)
-
-nonce: 69782 - hash: A0B32524..
-
-nonce: 69783 - hash: 4953887B..
-
-nonce: 69784 - hash: 5004D7E5..
-
-nonce: 69785 - hash: **0000**F9EF...
-
-## Konsens
-
-![2 Knoten finden neuen Block](../Images/Consensus1.png)
-
-##
-
-![wird im Netzwerk verbreitet](../Images/Consensus2.png)
-
-##
-
-![kein Konsens](../Images/Consensus3.png)
-
-##
-
-![Knoten finded neuen Block](../Images/Consensus4.png)
-
-##
-
-![Knoten wählen die längste Kette](../Images/Consensus5.png)
-
-##
-
-![Konsens wieder hergestellt](../Images/Consensus6.png)
-
-# Code
-
-##
-
-![Transaction](../Images/TransactionUML.png)
-
 ## 
 
 ![Account](../Images/AccountUML.png)
@@ -214,6 +101,24 @@ class Account
     public string PublicKey { .. }
 }
 ```
+
+##
+
+`sender` *zahlt* `42 €` an `receiver`
+
+![Transaktion](../Images/Transaction.png)
+
+##
+
+![Transaction](../Images/TransactionUML.png)
+
+##
+
+![Transaktion unterschreiben...](../Images/Hashing.png)
+
+##
+
+![Transaktion unterschreiben](../Images/Signing.png)
 
 ## Unterschreiben
 
@@ -231,7 +136,11 @@ class Account
 }
 ```
 
-## Unterschrift verifiziern
+##
+
+![Transaktion verifizieren](../Images/Verify.png)
+
+## verifiziern
 
 ```csharp
 static bool VerifySignatrue (
@@ -268,6 +177,36 @@ class Transaction
 
 }
 ```
+
+## doppelte Einträge
+
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
+...
+```
+
+## nicht weitergeben
+
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
+...
+```
+
+## Konsens?
+
+![](../Images/P2PwithData.png)
+
+# Block-Chain und Konsens
+
+##
+
+![BlockChain](../Images/BlockChain.png)
 
 ## 
 
@@ -353,7 +292,6 @@ class BlockChain : IEnumerable<Block>
     {
         _difficulty = difficulty;
         _genisisBlock = ...;
-        _genisisBlock.MineHash(difficulty);
         _lastBlock = _genisisBlock;
     }
 }
@@ -392,7 +330,39 @@ bool IsChainValid()
 }
 ```
 
-## Mininig
+## Mining
+
+##
+
+![einige Nodes beteiligen sich am "minen"](../Images/Mining1.png)
+
+##
+
+![Transaktionen in öffentliche Liste](../Images/Mining2.png)
+
+##
+
+![Miner wählen Transaktionen](../Images/Mining3.png)
+
+##
+
+![Gewinner verbreitet neuen Block](../Images/Mining4.png)
+
+## Mining?
+
+![Nounce](../Images/BlockChain.png)
+
+##
+
+**Hash** beginnt mit `x` Nullen (*Schwierigkeit*)
+
+nonce: 69782 - hash: A0B32524..
+
+nonce: 69783 - hash: 4953887B..
+
+nonce: 69784 - hash: 5004D7E5..
+
+nonce: 69785 - hash: **0000**F9EF...
 
 ##
 
@@ -428,3 +398,27 @@ bool IsHashValid(byte[] hash, int difficulty)
     return true;
 }
 ```
+
+## Konsens
+
+![2 Knoten finden neuen Block](../Images/Consensus1.png)
+
+##
+
+![wird im Netzwerk verbreitet](../Images/Consensus2.png)
+
+##
+
+![kein Konsens](../Images/Consensus3.png)
+
+##
+
+![Knoten finded neuen Block](../Images/Consensus4.png)
+
+##
+
+![Knoten wählen die längste Kette](../Images/Consensus5.png)
+
+##
+
+![Konsens wieder hergestellt](../Images/Consensus6.png)
