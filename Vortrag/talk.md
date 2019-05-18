@@ -4,37 +4,163 @@ title: BlockChain selbst gebastelt
 date: 23. Mai 2019
 ---
 
-# Einleitung
+# Bitcoin
+
+##
+
+![](../Images/Sparschwein.jpg)
+
+##
+
+![](../Images/Sparbuch.jpg)
+
+## Ledger
+
+```
+...
+
+Carsten zahlt am `07.01.` `50 DM` ein
+Carsten zahlt am `13.03.` `10 DM` ein
+...
+Carsten hebt am `09.09` `20 DM` ab
+...
+```
 
 ## zentralisiert
 
 ![](../Images/CentralNetwork.png)
 
-## peer-to-peer
+## öffentlicher Ledger
 
-![](../Images/DecentralNetwork.png)
 
-## Daten
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz
+...
+```
+
+## 
 
 ![](../Images/P2PwithData.png)
 
-## neuer Block
+##
 
-![](../Images/NodeCreatesNewTransaction.png)
+![neue Zahlung](../Images/NodeCreatesNewTransaction.png)
 
-## an Peers
+##
 
-![](../Images/NodeSendsNewTransaction.png)
+![wird im Netz verteilt](../Images/NodeSendsNewTransaction.png)
 
 ## ...
 
 ![](../Images/NodesValidateAndRelayNewTransaction.png)
 
-## BlockChain
 
-![](../Images/BlockChain.png)
+## Problem
+
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz
+...
+```
+
+## *Umverteilung*
+
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz
+...
+Karl-Heinz zahlt am `14.05.` `10 €` an Carsten
+```
+
+## Unterschrift
+
+![](../Images/SparbuchUnterschrift.jpg)
+
+##
+
+![](../Images/ECDSA.png)
+
+##
+
+`sender` *zahlt* `42 €` an `receiver`
+
+![Transaktion](../Images/Transaction.png)
+
+##
+
+![Transaktion unterschreiben...](../Images/Hashing.png)
+
+##
+
+![Transaktion unterschreiben](../Images/Signing.png)
+
+##
+
+![Transaktion verifizieren](../Images/Verify.png)
+
+
+## doppelte Einträge
+
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
+Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
+...
+```
+
+## nicht weitergeben
+
+```
+...
+
+Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
+...
+```
+
+## Konsens?
+
+![](../Images/P2PwithData.png)
+
+# Block-Chain und Konsens
+
+##
+
+![BlockChain](../Images/BlockChain.png)
 
 ## Mining
+
+##
+
+![einige Nodes beteiligen sich am "minen"](../Images/Mining1.png)
+
+##
+
+![Transaktionen in öffentliche Liste](../Images/Mining2.png)
+
+##
+
+![Miner wählen Transaktionen](../Images/Mining3.png)
+
+##
+
+![Gewinner verbreitet neuen Block](../Images/Mining4.png)
+
+## Mining?
+
+![Nounce](../Images/BlockChain.png)
+
+##
+
+**Hash** beginnt mit `x` Nullen (*Schwierigkeit*)
 
 nonce: 69782 - hash: A0B32524..
 
@@ -42,11 +168,9 @@ nonce: 69783 - hash: 4953887B..
 
 nonce: 69784 - hash: 5004D7E5..
 
-nonce: 69785 - hash: **0000F**9EF...
+nonce: 69785 - hash: **0000**F9EF...
 
-# Konsens
-
-##
+## Konsens
 
 ![2 Knoten finden neuen Block](../Images/Consensus1.png)
 
@@ -70,29 +194,7 @@ nonce: 69785 - hash: **0000F**9EF...
 
 ![Konsens wieder hergestellt](../Images/Consensus6.png)
 
-# Transaktion
-
-##
-
-![](../Images/ECDSA.png)
-
-##
-
-![Transaktion](../Images/Transaction.png)
-
-##
-
-![Transaktion unterschreiben...](../Images/Hashing.png)
-
-##
-
-![Transaktion unterschreiben](../Images/Signing.png)
-
-##
-
-![Transaktion verifizieren](../Images/Verify.png)
-
-# Transaktion
+# Code
 
 ##
 
@@ -167,8 +269,6 @@ class Transaction
 }
 ```
 
-# Block
-
 ## 
 
 ![Block](../Images/BlockUML.png)
@@ -236,8 +336,6 @@ bool ValidateHash()
 }
 ```
 
-# Blockchain
-
 ## 
 
 ![BlockChain](../Images/BlockChainUML.png)
@@ -294,7 +392,7 @@ bool IsChainValid()
 }
 ```
 
-# Mining
+## Mininig
 
 ##
 
