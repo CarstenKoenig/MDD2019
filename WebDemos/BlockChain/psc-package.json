@@ -1,0 +1,17 @@
+{
+  "name": "starter",
+  "set": "psc-0.12.5",
+  "source": "https://github.com/purescript/package-sets.git",
+  "depends": [
+    "concur-react",
+    "console",
+    "crypto",
+    "effect",
+    "js-timers",
+    "prelude",
+    "psci-support",
+    "strings",
+    "tailrec",
+    "tuples"
+  ]
+}
