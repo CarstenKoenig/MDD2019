@@ -8,25 +8,40 @@ namespace BlockChain
 {
     public class BlockChain : IEnumerable<Block>
     {
-        readonly Dictionary<string, Block> _blocks;
+        readonly Dictionary<string, Block> _blockLookup;
+        readonly Block _genisisBlock;
+        Block _lastBlock;
         readonly int _difficulty;
 
 
         public BlockChain(int difficulty)
         {
-            _blocks = new Dictionary<string, Block>();
+            _blockLookup = new Dictionary<string, Block>();
             _difficulty = difficulty;
-
-            // Genisis-Block
-            AddBlock(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()));
+            _genisisBlock = new Block(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()), DateTime.Now, new byte[] { });
+            _genisisBlock.MineHash(difficulty);
+            _blockLookup.Add(_genisisBlock.BlockHash, _genisisBlock);
+            _lastBlock = _genisisBlock;
         }
 
-        public Block AddBlock(byte[] content)
+        public bool AddBlock(Block newBlock)
         {
-            var previousHash = _blocks.Values.LastOrDefault()?.BlockHashBytes ?? new byte[] { };
+            if (!newBlock.ValidateHash())
+                return false;
+            if (!newBlock.PreviousHashBytes.IsSameAs(_lastBlock.BlockHashBytes))
+                return false;
+
+            _lastBlock = newBlock;
+            _blockLookup.Add(newBlock.BlockHash, newBlock);
+            return true;
+        }
+
+        public Block AddContent(byte[] content)
+        {
+            var previousHash = _lastBlock.BlockHashBytes;
             var newBlock = new Block(content, DateTime.Now, previousHash);
             newBlock.MineHash(_difficulty);
-            _blocks.Add(newBlock.BlockHash, newBlock);
+            if (!AddBlock(newBlock)) return null;
             return newBlock;
         }
 
@@ -34,20 +49,20 @@ namespace BlockChain
         {
             get
             {
-                if (_blocks.TryGetValue(hash, out var block))
+                if (_blockLookup.TryGetValue(hash, out var block))
                     return block;
-                throw new KeyNotFoundException($"no block with hash {hash} found");
+                return null;
             }
         }
 
         public bool IsChainValid()
         {
-            var previousHash = new byte[] { };
+            var previous = _genisisBlock;
             foreach (var block in this)
             {
-                if (!previousHash.IsSameAs(block.PreviousHash) || !block.ValidateHash())
+                if (!previous.BlockHashBytes.IsSameAs(block.PreviousHashBytes) || !block.ValidateHash())
                     return false;
-                previousHash = block.BlockHashBytes;
+                previous = block;
             }
 
             return true;
@@ -56,12 +71,19 @@ namespace BlockChain
 
         public IEnumerator<Block> GetEnumerator()
         {
-            return ((IEnumerable<Block>)_blocks.Values).GetEnumerator();
+            var stack = new Stack<Block>();
+            var block = _lastBlock;
+            while (block != null && block != _genisisBlock)
+            {
+                stack.Push(block);
+                block = this[block.PreviousHash];
+            }
+            return ((IEnumerable<Block>)stack).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable<Block>)_blocks.Values).GetEnumerator();
+            return this.GetEnumerator();
         }
     }
 }

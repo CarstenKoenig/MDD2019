@@ -13,12 +13,14 @@ namespace BlockChain
 
             var blockChain = new BlockChain(difficulty: 2);
 
-            var transaktion = new Transaction(sender, receiver.PublicKey, 42.42m);
-            blockChain.AddBlock(transaktion.Serialize());
+            var transaction = new Transaction(sender, receiver.PublicKey, 42.42m);
+            blockChain.AddContent(transaction.Serialize());
+            var smallTransaction = new Transaction(sender, receiver.PublicKey, 0.42m);
+            blockChain.AddContent(smallTransaction.Serialize());
 
             System.Console.WriteLine($"Valide Chain? {blockChain.IsChainValid()}");
 
-            foreach (var block in blockChain.Skip(1))
+            foreach (var block in blockChain)
             {
                 Console.WriteLine($"Block:\n{block}\n---\n");
 

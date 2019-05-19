@@ -10,7 +10,7 @@ namespace BlockChain
         {
             Content = inhalt;
             Timestamp = zeitstempel;
-            PreviousHash = vorhergehenderHash;
+            PreviousHashBytes = vorhergehenderHash;
 
             Nonce = -1;
             BlockHashBytes = null;
@@ -26,7 +26,8 @@ namespace BlockChain
         public byte[] BlockHashBytes { get; private set; }
         public string BlockHash => Convert.ToBase64String(BlockHashBytes);
         public int Nonce { get; private set; }
-        public byte[] PreviousHash { get; }
+        public byte[] PreviousHashBytes { get; }
+        public string PreviousHash => Convert.ToBase64String(PreviousHashBytes);
 
         public override string ToString()
         {
@@ -41,7 +42,7 @@ namespace BlockChain
                 return completeHash;
             };
 
-            return $"{{{BytesToString(BlockHashBytes)}}}\nprev: {{{BytesToString(PreviousHash)}}}\nnonce:{Nonce}\ttime: {Timestamp.ToShortTimeString()}";
+            return $"{{{BytesToString(BlockHashBytes)}}}\nprev: {{{BytesToString(PreviousHashBytes)}}}\nnonce:{Nonce}\ttime: {Timestamp.ToShortTimeString()}";
         }
 
         public void MineHash(int difficulty)
@@ -84,8 +85,11 @@ namespace BlockChain
         byte[] CalculateHash(int nonce)
         {
             var bytes = GetBlockBytes(nonce);
-            using (var hashAlgorithm = SHA512.Create())
-                return hashAlgorithm.ComputeHash(bytes);
+            using (var hashAlgorithm = SHA256.Create())
+                return
+                    hashAlgorithm.ComputeHash(
+                        hashAlgorithm.ComputeHash(
+                            bytes));
         }
 
         byte[] GetBlockBytes(int nonce)
