@@ -12,13 +12,9 @@ import Control.Alt ((<|>))
 import Control.Monad.Rec.Class (Step(..), tailRecM)
 import Data.Array (fromFoldable)
 import Data.Either (Either(..))
-import Data.Foldable (foldM)
-import Data.Map (Map, lookup)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.String (codePointFromChar, countPrefix)
 import Data.String as String
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.AVar as Effect.AVar
 import Effect.Aff.AVar as Effect.Aff.AVar
@@ -26,7 +22,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Timer (setTimeout)
-import Node.Crypto.Hash (Algorithm(..), hex)
+import Block (Block, Blocks, Difficulty, Hash, Nonce, blockContent', blockHash, calculateHash, createBlocks, isBlockValid, isValidHash, previousHash, setNonce, setText)
 
 
 blocksWidget :: forall a. Difficulty -> Blocks -> Widget HTML a
@@ -81,92 +77,8 @@ mineButton difficulty blocks block = do
 main :: Effect Unit
 main = do
   let difficulty = 5
-  blocks <- createBlocks difficulty [ 1344708, 2189008, 98414, 1071859 ]
+  let blocks = createBlocks difficulty [ 1344708, 2189008, 98414, 1071859 ]
   runWidgetInDom "root" (blocksWidget difficulty blocks)
-
-
-type Block =
-  { blockNr :: BlockNr
-  , nonce   :: Nonce
-  , text    :: String
-  }
-
-
-type Blocks = Map BlockNr Block
-type BlockNr = Int
-type Difficulty = Int
-type Nonce = Int
-type Hash = String
-
-
-setText :: BlockNr -> String -> Blocks -> Blocks
-setText blockNr newText =
-  Map.update (Just <<< _ { text = newText }) blockNr
-
-
-setNonce :: BlockNr -> Nonce -> Blocks -> Blocks
-setNonce blockNr newNonce =
-  Map.update (Just <<< _ { nonce = newNonce }) blockNr
-
-
-createBlocks :: Difficulty -> Array Nonce -> Effect Blocks
-createBlocks difficulty nonces = foldM add emptyBlocks nonces
-  where
-  add blocks nonce = do
-    let Tuple block blocks' = addBlock blocks
-    pure $ setNonce block.blockNr nonce blocks'
-
-
-emptyBlocks :: Blocks
-emptyBlocks = Map.empty
-
-
-addBlock :: Blocks -> Tuple Block Blocks
-addBlock blocks =
-  let blockNr  = 1 + (Map.size blocks)
-      nonce    = 0
-      text     = "Block " <> show blockNr
-      newBlock = { blockNr, nonce, text }
-  in Tuple newBlock (Map.insert blockNr newBlock blocks)
-
-
-isBlockValid :: Difficulty -> Blocks -> BlockNr -> Effect Boolean
-isBlockValid difficulty blocks blockNr = do
-  prevHash <- previousHash blocks blockNr
-  hash <- blockHash blocks blockNr
-  pure $ isValidHash difficulty hash
-
-
-blockHash :: Blocks -> BlockNr -> Effect String
-blockHash blocks blockNr = 
-  case lookup blockNr blocks of
-    Nothing -> pure ""
-    Just block -> blockContent blocks block >>= calculateHash
-
-
-previousHash :: Blocks -> BlockNr -> Effect String
-previousHash blocks blockNr =
-  blockHash blocks (blockNr - 1)
-
-
-blockContent :: Blocks -> Block -> Effect String
-blockContent blocks block = do
-  prevHash <- previousHash blocks block.blockNr
-  pure $ blockContent' prevHash block.text block.nonce
-
-
-blockContent' :: Hash -> String -> Nonce -> String
-blockContent' prevHash text nonce =
-  prevHash <> show nonce <> text
-
-
-calculateHash :: String -> Effect Hash
-calculateHash = hex SHA256 >=> hex SHA256
-
-
-isValidHash :: Difficulty -> Hash -> Boolean
-isValidHash difficulty hash =
-    countPrefix (_ == codePointFromChar '0') hash >= difficulty
 
 
 mineBlockWidget :: Difficulty -> Blocks -> Block -> Widget HTML Blocks
