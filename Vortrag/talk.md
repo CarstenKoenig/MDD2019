@@ -4,50 +4,83 @@ title: BlockChain selbst gebastelt
 date: 23. Mai 2019
 ---
 
-# Bitcoin
+# Krypto-Währung
 
 ##
 
 ![](../Images/Sparschwein.jpg)
 
+:::notes
+- erinnert sich noch jemand daran
+- lange gespart und dann zur Bank gebracht
+:::
+
 ##
 
 ![](../Images/Sparbuch.jpg)
+
+:::notes
+- gezählt und ins Sparbuch eingetragen
+- dort konnte man nachsehen, was man hat
+:::
 
 ## Ledger
 
 ```
 ...
 
-Carsten zahlt am `07.01.` `50 DM` ein
-Carsten zahlt am `13.03.` `10 DM` ein
-...
-Carsten hebt am `09.09` `20 DM` ab
+Einzahlung: 07.01. 50 DM - Guthaben 220 DM
+Einzahlung: 13.03. 10 DM - Guthaben 230 DM
+Zinsen      31.12.  2 DM - Guthaben 232 DM
+Abhebung:   09.09. 20 DM - Guthaben 212 DM
 ...
 ```
 
-## zentralisiert
+:::notes
+- jede Transaktion aufs Konto aufgeführt
+- Guthaben = Summe Einzahlungen - Summe Abhebungen
+- Vielleicht gab es noch Zinsen
+- Mit dem Sparbuch konnte man Guthaben *beweisen*
+:::
 
-![](../Images/CentralNetwork.png)
+##
+
+![zentralisiert](../Images/CentralNetwork.png)
+
+:::notes
+- Vertrauen in Bank nötig
+:::
 
 ## öffentlicher Ledger
 
-
 ```
 ...
 
-Carsten zahlt am `23.04.` `50 €` an Anne
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz
+Max  zahlt 50 € an Anne
+Anne zahlt 10 € an Charles
 ...
 ```
+
+:::notes
+- machen Transaktionen öffentlich
+- jeder kann Guthaben nachrechnen
+:::
 
 ## 
 
 ![](../Images/P2PwithData.png)
 
+:::notes
+- jeder hat den gesamten Ledger
+:::
+
 ##
 
 ![neue Zahlung](../Images/NodeCreatesNewTransaction.png)
+
+:::notes
+- eine neue Zahlung wird im Netz propagiert
+:::
 
 ##
 
@@ -63,43 +96,67 @@ Anne zahlt am `13.05.` `10 €` an Karl-Heinz
 ```
 ...
 
-Carsten zahlt am `23.04.` `50 €` an Anne
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz
+Max  zahlt 50 € an Anne
+Anne zahlt 10 € an Charles
 ...
 ```
 
-## *Umverteilung*
+:::notes
+- Privatsphäre?
+:::
+
+## *Vertrauen*
 
 ```
 ...
 
-Carsten zahlt am `23.04.` `50 €` an Anne
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz
+Max  zahlt 50 € an Anne
+Anne zahlt 10 € an Charles
 ...
-Karl-Heinz zahlt am `14.05.` `10 €` an Carsten
+Charles zahlt 10 € an Carsten :)
 ```
 
-## Unterschrift
+:::notes
+- gefälschte Zahlungen
+- Double-Spent (durch Verzögerungen im Netzwerk)
+:::
 
-![](../Images/SparbuchUnterschrift.jpg)
+## 
+
+![Unterschrift](../Images/SparbuchUnterschrift.jpg)
+
+:::notes
+- wie war das beim Sparbuch?
+- dort hat der Mitarbeiter (Vertrauen) unterschrieben / gestempelt
+- wie für unseren öffentlichen Ledger
+:::
 
 ##
 
 ![](../Images/ECDSA.png)
 
+:::notes
+- public-key Kryptographie
+- public-Key ist die Konto-Nummer
+- kann jeder selbst erzeugen
+- private muss selber aufgehoben werden
+:::
+
 ## 
 
-![Account](../Images/AccountUML.png)
-
-##
-
 ```csharp
-class Account
+public class Signature
 {
-    readonly RSAOpenSsl _signAlgorithm;
+  readonly RSAOpenSsl _signAlgorithm;
 
-    public string PublicKey { .. }
+  private string PrivateKey { get; }
+  public string PublicKey { get; }
+
+  string SignHash(byte[] data)
+
+  static bool VerifyHash(string publicKey, byte[] data, string signature)
 }
+
 ```
 
 ##
@@ -108,22 +165,48 @@ class Account
 
 ![Transaktion](../Images/Transaction.png)
 
+:::notes
+- soll unterschrieben werden
+:::
+
 ##
 
-![Transaction](../Images/TransactionUML.png)
+```csharp
+class Transaction
+{
+  string SenderPublicKey { get; }
+  string ReceiverPublicKey { get; }
+  decimal Amount { get; }
+  string Signature { get; }
+
+  bool Verify()
+}
+```
 
 ##
 
 ![Transaktion unterschreiben...](../Images/Hashing.png)
 
+:::notes
+- Sender / Receiver / Amount wird gehasht
+- Krypto-Hash: relativ einfach zu Berechnen
+- Ändert sich stark wenn sich die Nachricht leicht ändert
+- Unvorhersehbar
+:::
+
 ##
 
 ![Transaktion unterschreiben](../Images/Signing.png)
 
+:::notes
+- Hash wird mit Private-Key des Senders unterschrieben
+- Hash wird mit angehängt
+:::
+
 ## Unterschreiben
 
 ```csharp
-class Account
+class Signature
 {
     string SignData(byte[] data)
     {
@@ -136,11 +219,23 @@ class Account
 }
 ```
 
+:::notes
+- mit SHA256 Hashen und mit RSA Unterschreiben
+- Bitcoin nutzt ECDSA
+:::
+
+
 ##
 
 ![Transaktion verifizieren](../Images/Verify.png)
 
-## verifiziern
+:::notes
+- aus Sender, Receiver, Amount erneut hashen
+- Signatur mit public-Key verifizieren
+- ECDSA ein wenig anders (Hash wird nicht direkt verglichen)
+:::
+
+## verifizieren
 
 ```csharp
 static bool VerifySignatrue (
@@ -159,71 +254,57 @@ static bool VerifySignatrue (
 }
 ```
 
-## Transaktion validieren
-
-```csharp
-class Transaction
-{
-    readonly string _sender;
-    readonly string _receiver;
-    readonly decimal _amount;
-    readonly string _signature;
-
-    bool Verify()
-    {
-        var data = GetTransactionData();
-        return Account.VerifyHash(_sender, data, _signature);
-    }
-
-}
-```
-
 ## doppelte Einträge
 
 ```
 ...
 
-Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
-Anne zahlt am `13.05.` `10 €` an Karl-Heinz (Unterschrift)
+Max  zahlt 50 € an Anne
+Anne zahlt 10 € an Charles
+Anne zahlt 10 € an Charles
 ...
 ```
 
-## nicht weitergeben
+:::notes
+- immer noch möglich
+- in Bitcoin wird mit Transaktionen bezahlt
+- Double-Spent
+:::
 
-```
-...
-
-Carsten zahlt am `23.04.` `50 €` an Anne (Unterschrift)
-...
-```
 
 ## Konsens?
 
 ![](../Images/P2PwithData.png)
 
-# Block-Chain und Konsens
+
+:::notes
+- Blockchain muss Konsens erreichen
+- eventuelle Consistency
+:::
+
+# BlockChain und Konsens
 
 ##
 
-![BlockChain](../Images/BlockChain.png)
+![Block](../Images/BlockDemo.png)
+
+:::notes
+- Block wird über seinen Hash identifiziert
+- zeigt auf den Hash von vorherigen Block
+- dadurch Graph / Baum
+:::
 
 ## 
-
-![Block](../Images/BlockUML.png)
-
-## Block
 
 ```csharp
 class Block
 {
-    DateTime Timestamp { get; }
-    byte[] PreviousHash { get; }
-    byte[] Content { get; }
-
     string BlockHash { get; private set; }
+
+    byte[] PreviousHash { get; }
     int Nonce { get; private set; }
 
+    byte[] Content { get; }
 
     void MineHash(int difficulty) {..}
     bool ValidateHash() {..}
@@ -255,7 +336,6 @@ byte[] GetBlockBytes()
         binaryStream.Write(Content);
         binaryStream.Write(BitConverter.GetBytes(Nonce));
         binaryStream.Write(PreviousHash);
-        binaryStream.Write(Timestamp.ToBinary());
 
         return memoryStream.ToArray();
     }
@@ -265,19 +345,21 @@ byte[] GetBlockBytes()
 ## Block validieren
 
 ```csharp
-bool ValidateHash()
+bool ValidateBlock()
 {
-    if (BlockHashBytes == null)
-        return false;
-
     return BlockHashBytes
-        .IsSameAs(CalculateHash(Nonce));
+        .IsSameAs(CalculateHash());
 }
 ```
 
-## 
+##
 
-![BlockChain](../Images/BlockChainUML.png)
+![BlockChain](../Images/BlockChainDemo.png)
+
+:::notes
+- Blockchain ist der längste Pfad in diesem Baum (meiste Arbeit)
+:::
+
 
 ## Blockchain
 
@@ -302,7 +384,7 @@ class BlockChain : IEnumerable<Block>
 ```csharp
 bool AddBlock(Block newBlock)
 {
-    if (!newBlock.Validate())
+    if (!newBlock.ValidateBlock())
         return false;
     if (newBlock.PreviousHash != lastBlock.BlockHash)
         return false;
@@ -321,7 +403,7 @@ bool IsChainValid()
     foreach (var block in this)
     {
         if (previous.BlockHash != block.PreviousHash ||
-            !block.ValidateHash())
+            !block.ValidateBlock())
             return false;
         previous = block;
     }
@@ -350,7 +432,7 @@ bool IsChainValid()
 
 ## Mining?
 
-![Nounce](../Images/BlockChain.png)
+![Nounce](../Images/BlockChainDemo.png)
 
 ##
 
@@ -422,3 +504,35 @@ bool IsHashValid(byte[] hash, int difficulty)
 ##
 
 ![Konsens wieder hergestellt](../Images/Consensus6.png)
+
+# Lösungen der Blockchain
+
+## Unveränderbarkeit
+
+über verlinkte Hashes und *Proof of Work*
+
+## verifizierbare Transaktionen
+
+über kryptographische Signaturen
+
+## Konsens im Netz
+
+über Blockchain-Eigenschaft
+
+## Double-Spent?
+
+öffentliche Transaktionen
+
+# Probleme
+
+## extrem hoher Energiebedarf
+
+## zu hoher Rechenaufwand für gemeinschaftliches Minen
+
+:::notes
+- Alternativen zu ProofOfWork (ProofOfStake,...)
+:::
+
+# Fragen?
+
+## Vielen Dank
