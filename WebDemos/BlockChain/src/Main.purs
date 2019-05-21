@@ -2,6 +2,7 @@ module Main where
 
 import Prelude
 
+import Block (Block, Blocks, Difficulty, Hash, Nonce, blockContent', blockHash, calculateHash, createBlocks, isBlockValid, isValidHash, previousHash, setNonce, setText)
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM as D
@@ -22,7 +23,6 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Effect.Timer (setTimeout)
-import Block (Block, Blocks, Difficulty, Hash, Nonce, blockContent', blockHash, calculateHash, createBlocks, isBlockValid, isValidHash, previousHash, setNonce, setText)
 
 
 blocksWidget :: forall a. Difficulty -> Blocks -> Widget HTML a
@@ -50,11 +50,11 @@ blockWidget difficulty blocks block = do
     ]
     [ D.div
         [ P.className "card-header" ]
-        [ D.text hash ]
+        [ D.h5' [ D.text hash ] ]
     , D.div
         [ P.className "card-body" ]
-        [ D.h5 [ P.className "card-title"] [ D.text $ "prev.: " <> prevHash ]
-        , D.p [ P.className "card-text"] [ D.text $ "nonce: " <> show block.nonce ]
+        [ D.p [ P.className "card-text"] [ D.text "prev: ", D.strong' [ D.text prevHash ] ]
+        , D.p [ P.className "card-text"] [ D.text "nonce: ", D.strong' [ D.text $ show block.nonce ] ]
         , ((\txt -> setText block.blockNr txt blocks) <<< unsafeTargetValue) <$> D.input [ P.onChange, P.value block.text ]
         , mineButton difficulty blocks block
         ]
