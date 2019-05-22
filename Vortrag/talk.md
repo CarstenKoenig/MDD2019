@@ -612,3 +612,5 @@ bool IsHashValid(byte[] hash, int difficulty)
 # Fragen?
 
 ## Vielen Dank
+
+Code & Slides: [github.com/CarstenKoenig/MDD2019](https://github.com/CarstenKoenig/MDD2019)
