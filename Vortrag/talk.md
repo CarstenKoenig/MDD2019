@@ -1,10 +1,26 @@
 ---
 author: Carsten König
 title: BlockChain selbst gebastelt
-date: 23. Mai 2019
 ---
 
-# Krypto-Währung
+# Blockchain
+
+## Fragen
+
+in dezentralen Systemen:
+
+- Wie kann *Konsens* erreicht werden?
+- Wie können *Fälschungen* und *Manipulationen* verhindert werden?
+- Können Daten *transparent* und trotzdem *vertraulich* gespeichert werden?
+
+:::notes
+- wollen Daten dezentral Speichern
+- Knoten im Netz ist ein Teilnehmer
+- Übertragung nicht sicher
+- Netz kann partioniert sein
+:::
+
+# Krypto-währung
 
 ##
 
@@ -86,23 +102,20 @@ Anne zahlt 10 € an Charles
 
 ![wird im Netz verteilt](../Images/NodeSendsNewTransaction.png)
 
-## ...
-
-![](../Images/NodesValidateAndRelayNewTransaction.png)
-
-
-## Problem
+## Privatsphäre?
 
 ```
 ...
 
 Max  zahlt 50 € an Anne
 Anne zahlt 10 € an Charles
+Charles zahlt 10.000 € an Max
 ...
 ```
 
 :::notes
 - Privatsphäre?
+- warum zahlt Charles 10k an Max?
 :::
 
 ## *Vertrauen*
@@ -121,11 +134,22 @@ Charles zahlt 10 € an Carsten :)
 - Double-Spent (durch Verzögerungen im Netzwerk)
 :::
 
+## Vertrauen
+
+![](../Images/P2PwithData.png)
+
+:::notes
+- rote Knoten in der Mitte könnte
+- Datenfluss manipuliern
+- gehen wir die Probleme an
+:::
+
 ## 
 
 ![Unterschrift](../Images/SparbuchUnterschrift.jpg)
 
 :::notes
+- gefälschte Zahlungen
 - wie war das beim Sparbuch?
 - dort hat der Mitarbeiter (Vertrauen) unterschrieben / gestempelt
 - wie für unseren öffentlichen Ledger
@@ -142,23 +166,6 @@ Charles zahlt 10 € an Carsten :)
 - private muss selber aufgehoben werden
 :::
 
-## 
-
-```csharp
-public class Signature
-{
-  readonly RSAOpenSsl _signAlgorithm;
-
-  private string PrivateKey { get; }
-  public string PublicKey { get; }
-
-  string SignHash(byte[] data)
-
-  static bool VerifyHash(string publicKey, byte[] data, string signature)
-}
-
-```
-
 ##
 
 `sender` *zahlt* `42 €` an `receiver`
@@ -168,20 +175,6 @@ public class Signature
 :::notes
 - soll unterschrieben werden
 :::
-
-##
-
-```csharp
-class Transaction
-{
-  string SenderPublicKey { get; }
-  string ReceiverPublicKey { get; }
-  decimal Amount { get; }
-  string Signature { get; }
-
-  bool Verify()
-}
-```
 
 ##
 
@@ -201,6 +194,41 @@ class Transaction
 :::notes
 - Hash wird mit Private-Key des Senders unterschrieben
 - Hash wird mit angehängt
+:::
+
+##
+
+![Transaktion verifizieren](../Images/Verify.png)
+
+:::notes
+- aus Sender, Receiver, Amount erneut hashen
+- Signatur mit public-Key verifizieren
+- ECDSA ein wenig anders (Hash wird nicht direkt verglichen)
+:::
+
+## 
+
+```csharp
+public class Signature
+{
+  readonly RSAOpenSsl _signAlgorithm;
+
+  private string PrivateKey { get; }
+  public string PublicKey { get; }
+
+  string SignData(byte[] data)
+
+  static bool VerifyHash(
+     string publicKey, 
+     byte[] data, 
+     string signature)
+}
+
+```
+
+:::notes
+- Hash als String
+- PubK/PrivK auch als String
 :::
 
 ## Unterschreiben
@@ -224,17 +252,6 @@ class Signature
 - Bitcoin nutzt ECDSA
 :::
 
-
-##
-
-![Transaktion verifizieren](../Images/Verify.png)
-
-:::notes
-- aus Sender, Receiver, Amount erneut hashen
-- Signatur mit public-Key verifizieren
-- ECDSA ein wenig anders (Hash wird nicht direkt verglichen)
-:::
-
 ## verifizieren
 
 ```csharp
@@ -254,6 +271,35 @@ static bool VerifySignatrue (
 }
 ```
 
+##
+
+```csharp
+class Transaction
+{
+  string SenderPublicKey { get; }
+  string ReceiverPublicKey { get; }
+  decimal Amount { get; }
+  string Signature { get; }
+
+  bool Verify()
+}
+```
+
+:::notes
+- Keys + Amount werden mit private Key unterschrieben 
+:::
+
+## Erreicht
+
+- Privatspähre (?)
+- Vertrauenswürdige Transaktionen
+
+:::notes
+- keine Namen nur selber-erzeugte Public Keys sichtbar
+- könnten bei jeder Transaktion neu erzeugt werden
+- Transaktionen sind schwer zu fälschen
+:::
+
 ## doppelte Einträge
 
 ```
@@ -270,7 +316,6 @@ Anne zahlt 10 € an Charles
 - in Bitcoin wird mit Transaktionen bezahlt
 - Double-Spent
 :::
-
 
 ## Konsens?
 
@@ -348,15 +393,22 @@ byte[] GetBlockBytes()
 bool ValidateBlock()
 {
     return BlockHashBytes
-        .IsSameAs(CalculateHash());
+        .IsSameAs(CalculateHash())
+        && ValidateContent(Content);
 }
 ```
+
+:::notes
+- Conent sollte auch verifiziert werden
+- z.B. sind alle Transaktionen korrekt?
+:::
 
 ##
 
 ![BlockChain](../Images/BlockChainDemo.png)
 
 :::notes
+- Blockchain beginnt mit *Genisis*-Block
 - Blockchain ist der längste Pfad in diesem Baum (meiste Arbeit)
 :::
 
@@ -366,16 +418,11 @@ bool ValidateBlock()
 ```csharp
 class BlockChain : IEnumerable<Block>
 {
-    readonly int _difficulty;
+    int _difficulty;
+    readonly Dictionary<String, Block> _blocks;
     readonly Block _genisisBlock;
     Block _lastBlock;
-
-    public BlockChain(int difficulty)
-    {
-        _difficulty = difficulty;
-        _genisisBlock = ...;
-        _lastBlock = _genisisBlock;
-    }
+    ...
 }
 ```
 
@@ -386,13 +433,21 @@ bool AddBlock(Block newBlock)
 {
     if (!newBlock.ValidateBlock())
         return false;
-    if (newBlock.PreviousHash != lastBlock.BlockHash)
+    if (!_blocks.Contains(newBlock.PreviousHash))
         return false;
+        
+    if (PathLen(_genisisBlock, newBlock) > 
+        PathLen(_genisisBlock, _lastBlock)))
+        _lastBlock = newBlock;
 
-    _lastBlock = newBlock;
     return true;
 }
 ```
+
+:::notes
+- falls der Block nicht auf den letzen Block zeigt könnte ein Fork vorliegen
+- Pseudo-Code - habe ich so nicht beachtet
+:::
 
 ## Chain validieren
 
@@ -400,7 +455,7 @@ bool AddBlock(Block newBlock)
 bool IsChainValid()
 {
     var previous = _genisisBlock;
-    foreach (var block in this)
+    foreach (var block in PathTo(_lastBlock))
     {
         if (previous.BlockHash != block.PreviousHash ||
             !block.ValidateBlock())
@@ -412,27 +467,14 @@ bool IsChainValid()
 }
 ```
 
-## Mining
-
-##
-
-![einige Nodes beteiligen sich am "minen"](../Images/Mining1.png)
-
-##
-
-![Transaktionen in öffentliche Liste](../Images/Mining2.png)
-
-##
-
-![Miner wählen Transaktionen](../Images/Mining3.png)
-
-##
-
-![Gewinner verbreitet neuen Block](../Images/Mining4.png)
-
 ## Mining?
 
-![Nounce](../Images/BlockChainDemo.png)
+![Nonce](../Images/BlockChainDemo.png)
+
+:::notes
+- Nonce kommt ins Spiel
+- Kryptographisches Puzzle: finde Nonce so, dass der Hash mit 0en beginnt
+:::
 
 ##
 
@@ -445,6 +487,15 @@ nonce: 69783 - hash: 4953887B..
 nonce: 69784 - hash: 5004D7E5..
 
 nonce: 69785 - hash: **0000**F9EF...
+
+:::notes
+- nicht vorhersehbar
+- Glückssache
+- WS zu finden steigt mit Rechenpower
+- dadurch ist die Chain praktisch unveränderbar!
+:::
+
+## Demo
 
 ##
 
@@ -481,6 +532,22 @@ bool IsHashValid(byte[] hash, int difficulty)
 }
 ```
 
+## Miner
+
+![einige Nodes beteiligen sich am "minen"](../Images/Mining1.png)
+
+##
+
+![Transaktionen in öffentliche Liste](../Images/Mining2.png)
+
+##
+
+![Miner wählen Transaktionen](../Images/Mining3.png)
+
+##
+
+![Gewinner verbreitet neuen Block](../Images/Mining4.png)
+
 ## Konsens
 
 ![2 Knoten finden neuen Block](../Images/Consensus1.png)
@@ -505,23 +572,32 @@ bool IsHashValid(byte[] hash, int difficulty)
 
 ![Konsens wieder hergestellt](../Images/Consensus6.png)
 
-# Lösungen der Blockchain
+## Vertrauen(?)
 
-## Unveränderbarkeit
+![](../Images/P2PwithData.png)
 
-über verlinkte Hashes und *Proof of Work*
+:::notes
+- zur Erinnerung: roter Knoten könnte manipulieren
+- dann müsste er aber ständig eine eigene Blockchain minen
+- Netz versucht alle 10min. einen Block zu finden
+- geht also nur, wenn er min. 50% Leistung hat
+:::
 
-## verifizierbare Transaktionen
+# Fragen vom Anfang
 
-über kryptographische Signaturen
+## Wie kann Konsens erreicht werden?
 
-## Konsens im Netz
+über Blockchain-Eigenschaft / Algorithmus
 
-über Blockchain-Eigenschaft
+## Wie können Fälschungen und Manipulationen verhindert werden?
 
-## Double-Spent?
+- über verlinkte Hashes und *Proof of Work*
+- über kryptographische Signaturen
 
-öffentliche Transaktionen
+## Transparent und trotzdem vertraulich
+
+- Daten öffentlich
+- Identitäten über selbst erstellte Schlüssel
 
 # Probleme
 
