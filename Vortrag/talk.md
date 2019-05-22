@@ -17,10 +17,10 @@ in dezentralen Systemen:
 - wollen Daten dezentral Speichern
 - Knoten im Netz ist ein Teilnehmer
 - Übertragung nicht sicher
-- Netz kann partioniert sein
+- Netz kann partitioniert sein
 :::
 
-# Krypto-währung
+# Krypto-Währung
 
 ##
 
@@ -140,7 +140,7 @@ Charles zahlt 10 € an Carsten :)
 
 :::notes
 - rote Knoten in der Mitte könnte
-- Datenfluss manipuliern
+- Datenfluss manipuliert
 - gehen wir die Probleme an
 :::
 
@@ -248,7 +248,7 @@ class Signature
 ```
 
 :::notes
-- mit SHA256 Hashen und mit RSA Unterschreiben
+- mit SHA256 hashen und mit RSA Unterschreiben
 - Bitcoin nutzt ECDSA
 :::
 
@@ -291,7 +291,7 @@ class Transaction
 
 ## Erreicht
 
-- Privatspähre (?)
+- Privatsphären (?)
 - Vertrauenswürdige Transaktionen
 
 :::notes
@@ -399,7 +399,7 @@ bool ValidateBlock()
 ```
 
 :::notes
-- Conent sollte auch verifiziert werden
+- Content sollte auch verifiziert werden
 - z.B. sind alle Transaktionen korrekt?
 :::
 
@@ -445,7 +445,7 @@ bool AddBlock(Block newBlock)
 ```
 
 :::notes
-- falls der Block nicht auf den letzen Block zeigt könnte ein Fork vorliegen
+- falls der Block nicht auf den letzten Block zeigt könnte ein Fork vorliegen
 - Pseudo-Code - habe ich so nicht beachtet
 :::
 
@@ -490,7 +490,7 @@ nonce: 69785 - hash: **0000**F9EF...
 
 :::notes
 - nicht vorhersehbar
-- Glückssache
+- Glücksache
 - WS zu finden steigt mit Rechenpower
 - dadurch ist die Chain praktisch unveränderbar!
 :::
@@ -562,7 +562,7 @@ bool IsHashValid(byte[] hash, int difficulty)
 
 ##
 
-![Knoten finded neuen Block](../Images/Consensus4.png)
+![Knoten findet neuen Block](../Images/Consensus4.png)
 
 ##
 
